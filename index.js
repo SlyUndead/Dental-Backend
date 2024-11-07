@@ -4,6 +4,10 @@ const path = require('path');
 const cors = require('cors');
 const multer = require('multer');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+const jwtSecretKey = "AgpDental"
 // const { createCanvas, loadImage } = require('canvas');
 // const sharp = require('sharp')
 const app = express();
@@ -13,7 +17,8 @@ app.use(function (req, res, next) {
         'http://localhost:3000',
         'http://localhost:3001',
         'https://agp-dental-dental.mdbgo.io',
-        'https://agp-ui-dental.mdbgo.io'
+        'https://agp-ui-dental.mdbgo.io',
+        'https://agp_ui-dental.mdbgo.io'
     ];
 
     const origin = req.headers.origin;
@@ -46,6 +51,25 @@ async function connectToDatabase() {
     }
 }
 connectToDatabase();
+
+
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization'];
+  
+    if (!token) {
+      return res.status(403).json({ message: 'No token provided.' });
+    }
+  
+    jwt.verify(token, jwtSecretKey, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: 'Failed to authenticate token.' });
+      }
+      req.user = decoded;
+      next();
+    });
+  };
+
+
 const PracticeListSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -142,6 +166,10 @@ const ClassNameSchema = new mongoose.Schema({
         required:true,
     },
     description:{
+        type:String,
+        required:true,
+    },
+    category:{
         type:String,
         required:true,
     },
@@ -257,7 +285,10 @@ const PatientImages = new mongoose.model('patientImages', PatientImagesSchema)
 
 app.get('/getPracticeList', async (req, res) => {
     try {
-        const practiceList = await PracticeList.find()
+        console.log(req.query.clientId);
+        const practiceList = await PracticeList.find({
+            "client_id": req.query.clientId
+        })
         res.status(200).json({ practiceList })
     }
     catch (err) {
@@ -284,10 +315,11 @@ app.get('/getPatientByID', async (req, res) => {
         const patientList = await Patient.findOne({
             "is_active": true,
             "_id": patientId
-        }).sort({ date_of_visit: -1 });
+        })
         res.status(200).json({ patientList })
     }
     catch (err) {
+        console.log(err)
         res.status(500).json({ message: err })
     }
 })
@@ -337,7 +369,7 @@ app.post('/add-className', async(req,res)=>{
                 await fs.promises.writeFile(thumbnailPath2, thumbnailBinaryData2);
         }
             const classDetails = new ClassName({
-            "className":req.body.className, "description":req.body.description, "created_on":date.toUTCString(), "created_by":req.body.created_by, "color":req.body.color,
+            "className":req.body.className, "description":req.body.description, "created_on":date.toUTCString(), "created_by":req.body.created_by,"category":req.body.category, "color":req.body.color,
             "is_deleted":false, "yt_url1":req.body.yt_url1, "yt_url2":req.body.yt_url2||null, "thumbnail1":req.body.thumbnailPath1, "thumbnail2":req.body.thumbnailPath2
         })
         await classDetails.save()
@@ -348,7 +380,19 @@ app.post('/add-className', async(req,res)=>{
         res.status(500).json({err});
     }
 })
-
+app.get('/get-classCategories', async(req,res)=>{
+    try {
+        // Fetch all documents and return only the category field
+        const classDetails = await ClassName.find(
+            { is_deleted: false },
+            { _id: 0, category: 1, className: 1, color:1 }
+        );
+        res.status(200).json(classDetails);
+    }
+    catch (err) {
+        res.status(500).json({ err });
+    }
+})
 app.get('/get-className', async(req,res)=>{
     try{
         const classDetails =await ClassName.findOne({
@@ -381,12 +425,14 @@ app.post('/add-patientVisit', async (req, res) => {
     }
 })
 
+//Patient images
+
 app.get('/getPatientVisitsByID', async (req, res) => {
     try {
         const patientId = req.query.patientId;
         const patienVisits = await PatientVisits.find({
             "patientId": patientId
-        })
+        }).sort({date_of_visit:-1})
         res.status(200).json({ patienVisits })
     }
     catch (err) {
@@ -398,7 +444,8 @@ app.get('/getPatientImagesByID', async (req, res) => {
     try {
         const patientId = req.query.patientId;
         const patienImages = await PatientImages.find({
-            "patientId": patientId
+            "patientId": patientId,
+            "is_deleted" : false
         })
         res.status(200).json({ patienImages })
     }
@@ -406,6 +453,26 @@ app.get('/getPatientImagesByID', async (req, res) => {
         res.status(500).json({ message: err })
     }
 })
+
+app.put('/delete-patient-image', async(req,res)=>{
+    try{
+        const filter = { _id: { $in: req.query.ids } };
+        const update = { is_deleted: true }; 
+        const result=await PatientImages.updateMany(filter,update)
+        res.status(200).json({
+            message: 'Records updated successfully',
+            modifiedCount: result.modifiedCount,
+        });
+    }
+
+    catch(err){
+        console.log(err)
+        res.status(500).json({message:"Internal Server Error"})
+    }
+})
+
+
+//----------------
 app.get('/next-previousVisit', async(req,res)=>{
     try{
         const visitId= req.query.visitId
@@ -577,6 +644,67 @@ app.get('/recent-images', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+app.get('/notes-content', async(req,res)=>{
+    try{
+        const notes=await PatientVisits.findOne({_id:req.query.visitID})
+        if(notes){
+            res.status(200).json({notes:notes.notes})
+        }
+        else{
+            res.status(404).json({message:"Visit not found"})
+        }
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).json({message:"Internal Server Error"})
+    }
+})
+app.put('/save-notes', async(req,res)=>{
+    try{
+        const notes=await PatientVisits.findOneAndUpdate({_id:req.body.visitID},{notes:req.body.notes})
+        if(notes){
+            res.status(200).json({notes:notes.notes})
+        }
+        else{
+            res.status(404).json({message:"Visit not found"})
+        }
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).json({message:"Internal Server Error"})
+    }
+})
+
+app.put('/save-annotations', async(req,res)=>{
+    const { patientId, visitId, scaledResponse, imageNumber } = req.body;
+    const patientImages = await PatientImages.find({
+        "patientId": patientId,
+        "visitId":visitId
+    })
+    let annotationPath=''
+        patientImages.forEach(element => {
+        console.log(imageNumber,element.json_url.split('_')[2])
+        if(element.json_url.split('_')[2]===imageNumber.toString()){
+            annotationPath=element.json_url;
+            console.log(annotationPath)
+        }
+    });
+    try {
+        if(annotationPath!==''){
+            await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
+            res.status(200).send('Annotations saved successfully');
+        }
+        else{
+            console.error("Unable to find path")
+            res.status(404).send("Unable to find path to save")
+        }
+    } catch (err) {
+        console.error('Error uploading files:', err);
+        res.status(500).send('Error uploading files: ' + err.message);
+    }
+})
+
+
 app.get('/visitid-images', async (req, res) => {
     const annotatedFilesDir = path.join(__dirname, 'AnnotatedFiles');
     try {
@@ -599,6 +727,51 @@ app.get('/visitid-images', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+//User module
+  app.post('/user-register', async (req, res) => {
+    try {
+        if (await User.findOne({ "email": req.body.email })) {
+            res.status(409).json({ message: "User is already exist" })
+        }
+        else {
+            const pwd = await bcrypt.hash(req.body.password,10);
+            const user = new User({
+                "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email, "role": req.body.role,
+                "password": pwd,"client_id": req.body.client_id
+            })
+            await user.save()
+            res.status(200).json({ message: 'User created successfully' })
+        }
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({ err })
+    }
+})
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ "email": username });
+        if (!user) return res.status(404).send('User not found');
+
+        // Check password
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) return res.status(401).send('Invalid credentials');
+
+        // Generate JWT
+        const token = jwt.sign({ id: user._id }, jwtSecretKey, { expiresIn: '5h' });
+        const user1 = await User.findOne({ "email": username });
+        res.status(200).json({ "token" : token,"clientId": user1.client_id });
+    } catch (error) {
+        res.status(500).send('Server error');
+    }
+});
+
+//-------------------
+
 
 app.use('/AnnotatedFiles/Thumbnail', express.static(path.join(__dirname, 'AnnotatedFiles/Thumbnail')));
 
