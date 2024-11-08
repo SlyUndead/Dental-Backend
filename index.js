@@ -454,9 +454,13 @@ app.get('/getPatientImagesByID', async (req, res) => {
     }
 })
 
-app.put('/delete-patient-image', async(req,res)=>{
+app.post('/delete-patient-image', async(req,res)=>{
     try{
-        const filter = { _id: { $in: req.query.ids } };
+        const idsString = req.query.ids;
+        const idsArray = idsString.split(',');
+        const objectIds = idsArray.map(id => new mongoose.Types.ObjectId(id));
+
+        const filter = { _id: { $in: objectIds } };
         const update = { is_deleted: true }; 
         const result=await PatientImages.updateMany(filter,update)
         res.status(200).json({
@@ -645,20 +649,35 @@ app.get('/recent-images', async (req, res) => {
     }
 });
 app.get('/notes-content', async(req,res)=>{
+
     try{
+
         const notes=await PatientVisits.findOne({_id:req.query.visitID})
+
         if(notes){
+
             res.status(200).json({notes:notes.notes})
+
         }
+
         else{
+
             res.status(404).json({message:"Visit not found"})
+
         }
+
     }
+
     catch(err){
+
         console.log(err)
+
         res.status(500).json({message:"Internal Server Error"})
+
     }
+
 })
+
 app.put('/save-notes', async(req,res)=>{
     try{
         const notes=await PatientVisits.findOneAndUpdate({_id:req.body.visitID},{notes:req.body.notes})
@@ -669,6 +688,7 @@ app.put('/save-notes', async(req,res)=>{
             res.status(404).json({message:"Visit not found"})
         }
     }
+
     catch(err){
         console.log(err)
         res.status(500).json({message:"Internal Server Error"})
@@ -770,11 +790,29 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/download-image', (req, res) => {
+    const imageName = req.query.imageName; // Get the image file name from the query parameter
+  
+    // Define the path to the image in the 'images' folder
+    const imagePath = path.join(__dirname, 'AnnotatedFiles', imageName);
+  
+    // Set headers to prompt the browser to download the image
+    res.setHeader('Content-Disposition', `attachment; filename=${imageName}`);
+    res.setHeader('Content-Type', 'image/jpeg'); // You can set this dynamically based on the file type
+  
+    // Send the image file to the client
+    res.sendFile(imagePath, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        res.status(500).send('Error downloading the image');
+      }
+    });
+  });
 //-------------------
 
 
 app.use('/AnnotatedFiles/Thumbnail', express.static(path.join(__dirname, 'AnnotatedFiles/Thumbnail')));
-
+app.use('/AnnotatedFiles', express.static(path.join(__dirname, 'AnnotatedFiles')));
 // Serve static files from the 'public/images' directory
 //app.use('/images', express.static(path.join(__dirname, 'AnnotatedFiles/Thumbnail')));
 
