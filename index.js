@@ -7,11 +7,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
+const FormData = require('form-data');
 const jwtSecretKey = "AgpDental"
+const axios = require('axios');
 // const { createCanvas, loadImage } = require('canvas');
 // const sharp = require('sharp')
 const app = express();
-const upload = multer({ dest: 'AnnotatedFiles/' });
+const upload = multer({ dest: 'AnnotatedFiles/' ,storage: multer.memoryStorage()});
 app.use(function (req, res, next) {
     const allowedOrigins = [
         'http://localhost:3000',
@@ -576,7 +578,77 @@ app.put('/upload/image-and-annotations', async (req, res) => {
         res.status(500).send('Error uploading files: ' + err.message);
     }
 });
+  app.post('/upload/coordinates', upload.single('image'), async (req, res) => {
+    try {
+        const {base64Image, thumbnailBase64, visitId, fileName, patientID, imageNumber, annotationFileName} = req.body
+        // console.log(req.body)
+        const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
+        const fileBuffer = Buffer.from(base64Image.split(',')[1], 'base64');
+    
+        // Create FormData
+        const formData = new FormData();
+        
+        // Append the buffer as a file
+        formData.append('image', fileBuffer, {
+        filename: 'image.jpg',  // or whatever extension is appropriate
+        contentType: 'image/jpeg'  // or appropriate mime type
+        });
 
+        // Send to Flask server
+        const response = await axios.post('http://5.161.242.73/coordinates', 
+            formData, 
+            {
+               headers: {
+          ...formData.getHeaders()
+        },
+        // Add these to handle larger images
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
+            }
+        );
+        console.log(response.data)
+        const scaledResponse = {
+            annotations: response.data,
+            status: response.data.status,
+        };
+        const binaryData = Buffer.from(base64Data, 'base64');
+        // Extract thumbnail base64 data
+        const thumbnailData = thumbnailBase64.replace(/^data:image\/\w+;base64,/, "");
+        const thumbnailBinaryData = Buffer.from(thumbnailData, 'base64');
+
+        const imagePath = path.join(__dirname, 'AnnotatedFiles', fileName);
+        const annotationPath = path.join(__dirname, 'AnnotatedFiles', annotationFileName);
+        const thumbnailPath = path.join(__dirname, 'AnnotatedFiles', 'Thumbnail', `T${fileName}`);
+        // Save image
+        await fs.promises.writeFile(imagePath, binaryData);
+
+        // Save thumbnail
+        await fs.promises.writeFile(thumbnailPath, thumbnailBinaryData);
+
+        // Save annotations
+        await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
+
+        console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
+
+        //Save to Database
+        const date = new Date();
+        const images = new PatientImages({
+            "visitId": visitId, "patientId": patientID, "image_url": path.join('AnnotatedFiles', fileName),
+            "json_url": path.join('AnnotatedFiles', annotationFileName),
+            "thumbnail_url": path.join('AnnotatedFiles', 'Thumbnail', `T${fileName}`), "created_on": date.toUTCString(),
+            "is_deleted":false
+        })
+        await images.save()
+        res.status(200).json("Image, annotations and Thumbnail saved successfully");
+    }
+    catch (error) {
+        console.error('Error forwarding image:', error);
+        res.status(500).json({ 
+            error: 'Failed to forward image to Flask server',
+            details: error.message 
+        });
+    }
+});
 app.get('/most-recent-image', async (req, res) => {
     const annotatedFilesDir = path.join(__dirname, 'AnnotatedFiles');
 
