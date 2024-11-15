@@ -29,6 +29,7 @@ app.use(function (req, res, next) {
     }
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Accept-Encoding, Accept-Language, Connection, Host, Referer, Sec-Ch-Ua, Sec-Ch-Ua-Mobile, Sec-Ch-Ua-Platform, Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site, User-Agent, Authorization");
     res.header("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS");
+    res.header("Access-Control-Expose-Headers", "New-Token");
     if (req.method === "OPTIONS") {
         return res.status(200).end();
     }
@@ -65,6 +66,23 @@ const verifyToken = (req, res, next) => {
         if (err) {
             return res.status(401).json({ message: 'Failed to authenticate token.' });
         }
+        const inactivityPeriod = Date.now() - decoded.lastActivity;
+        if (inactivityPeriod > 7200000) {
+            return res.status(401).json({ 
+                message: 'Token expired due to inactivity.',
+                error: 'INACTIVITY_TIMEOUT'
+            });
+        }
+
+        // Update lastActivity in token
+        const newToken = jwt.sign({ 
+            id: decoded.id,
+            lastActivity: Date.now()
+        }, jwtSecretKey, { 
+            expiresIn: '24h' 
+        });
+        // Send new token in response header
+        res.setHeader('New-Token', newToken);
         req.user = decoded;
         next();
     });
@@ -877,7 +895,7 @@ app.post('/login', async (req, res) => {
         if (!isValid) return res.status(401).send('Invalid credentials');
 
         // Generate JWT
-        const token = jwt.sign({ id: user._id }, jwtSecretKey, { expiresIn: '5h' });
+        const token = jwt.sign({ id: user._id, lastActivity: Date.now() }, jwtSecretKey, { expiresIn: '5h' });
         const user1 = await User.findOne({ "email": username });
         res.status(200).json({ "token": token, "clientId": user1.client_id });
     } catch (error) {
