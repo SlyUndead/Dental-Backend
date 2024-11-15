@@ -663,7 +663,6 @@ app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req,
             "is_deleted": false
         })
         await images.save()
-        res.status(200).json("Image, annotations and Thumbnail saved successfully");
         res.status(200).json(response.data);
     }
     catch (error) {
@@ -823,9 +822,8 @@ app.put('/save-annotations', verifyToken, async (req, res) => {
 
 
 app.get('/visitid-images', verifyToken, async (req, res) => {
-    const annotatedFilesDir = path.join(__dirname, 'AnnotatedFiles');
     try {
-        const images = await PatientImages.find({ visitId: req.query.visitID });
+        const images = await PatientImages.find({ visitId: req.query.visitID,is_deleted:false });
         // Map through the images and prepare the response for each
         const imageData = await Promise.all(images.map(async (image) => {
             const base64Image = await fs.promises.readFile(image.image_url, 'base64');
