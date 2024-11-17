@@ -895,7 +895,7 @@ app.post('/login', async (req, res) => {
         if (!isValid) return res.status(401).send('Invalid credentials');
 
         // Generate JWT
-        const token = jwt.sign({ id: user._id, lastActivity: Date.now() }, jwtSecretKey, { expiresIn: '5h' });
+        const token = jwt.sign({ id: user._id, lastActivity: Date.now() }, jwtSecretKey, { expiresIn: '12h' });
         const user1 = await User.findOne({ "email": username });
         res.status(200).json({ "token": token, "clientId": user1.client_id });
     } catch (error) {
