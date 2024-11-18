@@ -810,19 +810,19 @@ app.put('/save-notes', verifyToken, async (req, res) => {
 })
 
 app.put('/save-annotations', verifyToken, async (req, res) => {
-    const { patientId, visitId, scaledResponse, imageNumber } = req.body;
+    const { patientId, visitId, scaledResponse, imageNumber, annotationPath } = req.body;
     const patientImages = await PatientImages.find({
         "patientId": patientId,
         "visitId": visitId
     })
-    let annotationPath = ''
-    patientImages.forEach(element => {
-        // console.log(imageNumber, element.json_url.split('_')[2])
-        if (element.json_url.split('_')[2] === imageNumber.toString()) {
-            annotationPath = element.json_url;
-            // console.log(annotationPath)
-        }
-    });
+    // let annotationPath = ''
+    // patientImages.forEach(element => {
+    //     // console.log(imageNumber, element.json_url.split('_')[2])
+    //     if (element.json_url.split('_')[2] === imageNumber.toString()) {
+    //         annotationPath = element.json_url;
+    //         // console.log(annotationPath)
+    //     }
+    // });
     try {
         if (annotationPath !== '') {
             await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
@@ -850,7 +850,8 @@ app.get('/visitid-images', verifyToken, async (req, res) => {
 
             return {
                 image: `data:image/${path.extname(image.image_url).slice(1)};base64,${base64Image}`,
-                annotations: JSON.parse(annotationData)
+                annotations: JSON.parse(annotationData),
+                name: image.image_url
             };
         }));
         // Return all images and annotations as an array
