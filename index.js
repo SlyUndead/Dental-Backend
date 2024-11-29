@@ -101,6 +101,10 @@ const PracticeListSchema = new mongoose.Schema({
     contactNo: {
         type: String,
         required: true,
+    },
+    client_id:{
+        type:String,
+        required:true,
     }
 }, {
     collection: "PracticeList"
@@ -300,7 +304,30 @@ const PatientImagesSchema = new mongoose.Schema({
 })
 const PatientImages = new mongoose.model('patientImages', PatientImagesSchema)
 
+app.post('/add-practice',verifyToken, async (req, res) => {
+    try {
+        // console.log(req.query.clientId);
+        const user1 = new PracticeList({name:req.body.name, address:req.body.address, contactNo:req.body.contactNo, client_id:req.body.clientId})
+        await user1.save()
+        res.status(200).json({ user1 })
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err })
+    }
+})
 
+app.post('/edit-practice',verifyToken, async (req, res) => {
+    try {
+        await PracticeList.findOneAndUpdate({_id:req.body.practiceId},{name:req.body.name, address:req.body.address, contactNo:req.body.contactNo, client_id:req.body.clientId})
+        const user2 = await PracticeList.findOne({_id:req.body.practiceId})
+        res.status(200).json({ user2 })
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err })
+    }
+})
 
 app.get('/getPracticeList',verifyToken, async (req, res) => {
     try {
@@ -898,7 +925,7 @@ app.post('/login', async (req, res) => {
         // Generate JWT
         const token = jwt.sign({ id: user._id, lastActivity: Date.now() }, jwtSecretKey, { expiresIn: '12h' });
         const user1 = await User.findOne({ "email": username });
-        res.status(200).json({ "token": token, "clientId": user1.client_id });
+        res.status(200).json({ "token": token, "clientId": user1.client_id, "firstName": user1.first_name, "lastName":user1.last_name });
     } catch (error) {
         res.status(500).send('Server error');
     }
