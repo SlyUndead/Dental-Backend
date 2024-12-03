@@ -179,6 +179,10 @@ const PatientSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    patient_active:{
+        type:Boolean,
+        required:true,
+    }
 }, {
     collection: "Patient"
 })
@@ -367,30 +371,6 @@ app.get('/getPatientByID',verifyToken, async (req, res) => {
     catch (err) {
         console.log(err)
         res.status(500).json({ message: err })
-    }
-})
-
-app.post('/add-patient',verifyToken, async (req, res) => {
-    try {
-        if (await Patient.findOne({ "email": req.body.email })) {
-            res.status(409).json({ message: "Patient already found" })
-        }
-        else {
-            const date = new Date();
-            const user = new Patient({
-                "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email, "telephone": req.body.telephone, "gender": req.body.gender,
-                "date_of_birth": req.body.dob, "reference_dob_for_age": req.body.reference_dob_for_age, "guardian_first_name": req.body.guardian_first_name,
-                "guardian_last_name": req.body.guardian_last_name, "guardian_relationship": req.body.guardian_relationship, "address": req.body.address,
-                "is_active": req.body.is_active, "created_on": date.toUTCString(), "created_by": req.body.created_by, "practiceId": req.body.practiceId
-            })
-            await user.save()
-            const user1 = await Patient.findOne({ "email": req.body.email })
-            res.status(200).json({ user1 })
-        }
-    }
-    catch (err) {
-        console.log(err)
-        res.status(500).json({ err })
     }
 })
 
@@ -586,20 +566,43 @@ app.post('/delete-patient', verifyToken, async (req, res) => {
         res.status(500).json({ err })
     }
 })
+app.post('/add-patient',verifyToken, async (req, res) => {
+    try {
+        if (await Patient.findOne({ "email": req.body.email })) {
+            res.status(409).json({ message: "Patient already found" })
+        }
+        else {
+            const date = new Date();
+            const user = new Patient({
+                "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email, "telephone": req.body.telephone, "gender": req.body.gender,
+                "date_of_birth": req.body.dob, "reference_dob_for_age": req.body.reference_dob_for_age, "guardian_first_name": req.body.guardian_first_name,
+                "guardian_last_name": req.body.guardian_last_name, "guardian_relationship": req.body.guardian_relationship, "address": req.body.address,
+                "is_active": req.body.is_active, "created_on": date.toUTCString(), "created_by": req.body.created_by, "practiceId": req.body.practiceId, "patient_active":req.body.patientActive
+            })
+            await user.save()
+            const user1 = await Patient.findOne({ "email": req.body.email })
+            res.status(200).json({ user1 })
+        }
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({ err })
+    }
+})
 app.post('/edit-patient', verifyToken, async (req, res) => {
     try {
         let date = new Date()
-        const user1 = await Patient.findOne({ "email": req.body.email });
-        await Patient.findOneAndUpdate({ "email": req.body.email }, {
+        await Patient.findOneAndUpdate({ _id: req.body.patientId }, {
             $set: {
-                "first_name": req.body.new_firstName, "last_name": req.body.new_lastName, "email": req.body.new_email,
-                "telephone": req.body.new_telephone, "gender": req.body.gender, "date_of_birth": req.body.new_dob, "reference_dob_for_age": req.body.new_ref_dob,
-                "guardian_first_name": req.body.new_guardian_first_name, "guardian_last_name": req.body.new_guardian_last_name, "guardian_relationship": req.body.new_guardian_relationship,
-                "address": req.body.new_address, "modified_on": date.toUTCString(), "modified_by": req.body.modified_by
+                "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email,
+                "telephone": req.body.telephone, "gender": req.body.gender, "date_of_birth": req.body.dob, "reference_dob_for_age": req.body.reference_dob_for_age,
+                "guardian_first_name": req.body.guardian_first_name, "guardian_last_name": req.body.guardian_last_name, "guardian_relationship": req.body.guardian_relationship,
+                "address": req.body.address, "modified_on": date.toUTCString(), "modified_by": req.body.created_by, "patient_active":req.body.patientActive
             }
         });
+        const user1=await Patient.findOne({_id:req.body.patientId})
         if (user1) {
-            res.status(200).json({ message: "Successfully updated" });
+            res.status(200).json({ user1 });
         } else {
             res.status(404).json({ message: "Item not found" });
         }
