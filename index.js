@@ -36,12 +36,7 @@ app.use(function (req, res, next) {
     next();
 });
 
-// const corsOptions = {
-//     origin: '*', // Replace this with the allowed origin
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Specify allowed methods
-// };
 app.use(cors())
-//app.use(cors(corsOptions));
 app.use(express.json({ limit: '10000mb' }));
 app.use(express.urlencoded({ limit: '10000mb', extended: true }));
 async function connectToDatabase() {
@@ -308,6 +303,58 @@ const PatientImagesSchema = new mongoose.Schema({
 })
 const PatientImages = new mongoose.model('patientImages', PatientImagesSchema)
 
+const CDTCodesSchema = new mongoose.Schema({
+    "Procedure Code":{
+        type: String,
+        required: true,
+    },
+    "Description of Service":{
+        type: String,
+        required: true,
+    },
+    "Average Fee":{
+        type: Number,
+        required: true,
+    },
+    "Patient Discount":{
+        type: Number,
+        required: true,
+    },
+    "Unit":{
+        type: String,
+        required: true,
+    }
+}, {
+    collection: "CDTCodes"
+})
+const CDTCodes = new mongoose.model('CDTCodes', CDTCodesSchema)
+
+const TreatmentPlanSchema = new mongoose.Schema({
+    patientId: {
+      type: String,
+      required: true,
+    },
+    treatments: {
+      type: Array,
+      required: true,
+    },
+    created_by: {
+      type: String,
+      required: true
+    },
+    created_on: {
+      type: String,
+      required: true
+    },
+    updated_on: {
+      type: Date,
+      required: false
+    }
+  },{
+    collection:"TreatmentPlan"
+  });
+  
+const TreatmentPlan = mongoose.model('TreatmentPlan', TreatmentPlanSchema);
 app.post('/add-practice',verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
@@ -612,6 +659,177 @@ app.post('/edit-patient', verifyToken, async (req, res) => {
         res.status(500).json({ err })
     }
 })
+app.post('/save-treatment-plan', verifyToken, async (req, res) => {
+    try {
+      const { patientId, treatments } = req.body;
+      
+      if (!patientId || !treatments) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields' 
+        });
+      }
+  
+      // Check if a treatment plan already exists for this patient
+      let treatmentPlan = await TreatmentPlan.findOne({ patientId });
+      const date=new Date()
+      if (treatmentPlan) {
+        // Update existing treatment plan
+        treatmentPlan.treatments = treatments;
+        treatmentPlan.updatedAt = Date.now();
+      } else {
+        // Create new treatment plan
+        treatmentPlan = new TreatmentPlan({
+          patientId,
+          treatments,
+          created_by: req.body.created_by, // Assuming your auth middleware sets user
+          created_on: date.toUTCString()
+        });
+      }
+  
+      await treatmentPlan.save();
+  
+      res.json({
+        success: true,
+        message: 'Treatment plan saved successfully',
+        treatmentPlan
+      });
+    } catch (error) {
+      console.error('Error saving treatment plan:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+        error: error.message
+      });
+    }
+  });
+  
+  // Route to get a treatment plan for a patient
+  app.get('/get-treatment-plan', verifyToken, async (req, res) => {
+    try {
+      const patientId = req.query.patientId;
+      
+      if (!patientId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Patient ID is required'
+        });
+      }
+  
+      const treatmentPlan = await TreatmentPlan.findOne({ patientId });
+  
+      if (!treatmentPlan) {
+        return res.json({
+          success: true,
+          message: 'No treatment plan found for this patient',
+          treatmentPlan: null
+        });
+      }
+  
+      res.json({
+        success: true,
+        treatmentPlan
+      });
+    } catch (error) {
+      console.error('Error fetching treatment plan:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+        error: error.message
+      });
+    }
+  });
+app.post('/chat-with-rag', verifyToken, async (req, res) => {
+    try {
+        const { query, promptTemplate } = req.body;
+        
+        // Forward request to Flask backend
+        const flaskResponse = await axios.post(`http://5.161.242.73/api/rag-chat`, {
+          query,
+          promptTemplate
+        });
+        
+        // Return response from Flask
+        res.json(flaskResponse.data);
+      } catch (error) {
+        console.error('Error proxying request to Flask server:', error);
+        
+        // Provide appropriate error response
+        if (error.response) {
+          // Flask server returned an error
+          res.status(error.response.status).json({
+            error: 'Error from RAG service',
+            details: error.response.data
+          });
+        } else if (error.request) {
+          // No response received from Flask server
+          res.status(503).json({
+            error: 'RAG service unavailable',
+            details: 'Could not connect to the RAG service'
+          });
+        } else {
+          // Error in setting up the request
+          res.status(500).json({
+            error: 'Internal server error',
+            details: error.message
+          });
+        }
+      }
+});
+
+app.get('/getCDTCodes', verifyToken, async(req,res)=>{
+    try{
+        const cdtCodes = await CDTCodes.find()
+        res.json({cdtCodes: cdtCodes})
+    }
+    catch (err){
+        res.status(500).json({err})
+    }
+})
+
+app.post("/checkAnomalies", verifyToken, async (req, res) => {
+    try {
+        const labels = req.body.labels;
+        let anomalies = {};
+
+        // Use Promise.all() to execute queries in parallel
+        await Promise.all(labels.map(async (label) => {
+            const checker = await ClassName.findOne({ className: label }); // Use findOne()
+            anomalies[label] = checker && checker.category === "Anomaly";
+        }));
+
+        res.json(anomalies);
+    } catch (err) {
+        console.error("Error checking anomalies:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+app.get('/get-annotations-for-treatment-plan', verifyToken, async(req,res)=>{
+    try {
+        const patientId = req.query.patientId;
+        const patientVisits = await PatientVisits.find({
+            "patientId": patientId
+        }).sort({ date_of_visit: -1 })
+        const lastVisit = patientVisits[0]
+        const images = await PatientImages.find({ visitId: lastVisit._id.toString(), is_deleted:false });
+        // Map through the images and prepare the response for each
+        const imageData = await Promise.all(images.map(async (image) => {
+            const base64Image = await fs.promises.readFile(image.image_url, 'base64');
+            const annotationFilePath = image.image_url.split('.').slice(0, -1).join('.') + '.json';
+            const annotationData = await fs.promises.readFile(annotationFilePath, 'utf8');
+
+            return {
+                annotations: JSON.parse(annotationData),
+            };
+        }));
+        // Return all images and annotations as an array
+        res.json({ images: imageData });
+    }
+    catch (err) {
+        res.status(500).json({ err })
+    }
+})
 app.put('/upload/image-and-annotations', verifyToken, async (req, res) => {
     const { base64Image, thumbnailBase64, fileName, patientID, imageNumber, scaledResponse, annotationFileName, visitId } = req.body;
 
@@ -637,7 +855,7 @@ app.put('/upload/image-and-annotations', verifyToken, async (req, res) => {
         // Save annotations
         await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
 
-        console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
+        // console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
 
         //Save to Database
         const date = new Date();
@@ -701,7 +919,7 @@ app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req,
         await fs.promises.writeFile(thumbnailPath, thumbnailBinaryData);
         // Save annotations
         await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
-        console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
+        // console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
         //Save to Database
         const date = new Date();
         const images = new PatientImages({
@@ -721,105 +939,21 @@ app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req,
         });
     }
 });
-app.get('/most-recent-image', verifyToken, async (req, res) => {
-    const annotatedFilesDir = path.join(__dirname, 'AnnotatedFiles');
 
-    try {
-        const files = await fs.promises.readdir(annotatedFilesDir);
-
-        // Filter image files and sort by modification time (most recent first)
-        const imageFiles = await Promise.all(files
-            .filter(file => file.match(/\.(jpg|jpeg|png|gif)$/i))
-            .map(async file => {
-                const stats = await fs.promises.stat(path.join(annotatedFilesDir, file));
-                return { name: file, mtime: stats.mtime };
-            }));
-        // console.log(imageFiles)
-        imageFiles.sort((a, b) => b.mtime - a.mtime);
-        if (imageFiles.length === 0) {
-            return res.status(404).json({ message: 'No images found' });
-        }
-
-        const mostRecentImage = imageFiles[0].name;
-        const annotationFileName = mostRecentImage.split('.').slice(0, -1).join('.') + '.json';
-
-        // Read the image file
-        const imageBuffer = await fs.promises.readFile(path.join(annotatedFilesDir, mostRecentImage));
-        const base64Image = imageBuffer.toString('base64');
-
-        // Read the annotation file
-        const annotationData = await fs.promises.readFile(path.join(annotatedFilesDir, annotationFileName), 'utf8');
-
-        res.json({
-            image: `data:image/${path.extname(mostRecentImage).slice(1)};base64,${base64Image}`,
-            annotations: JSON.parse(annotationData)
-        });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.get('/recent-images', verifyToken, async (req, res) => {
-    const limit = parseInt(req.query.limit) || 3;
-    const thumbnailDir = path.join(__dirname, 'AnnotatedFiles', 'Thumbnail');
-
-    try {
-        const files = await fs.promises.readdir(thumbnailDir);
-
-        // Filter image files and sort by modification time (most recent first)
-        const imageFiles = await Promise.all(files
-            .filter(file => file.match(/\.(jpg|jpeg|png|gif)$/i))
-            .map(async file => {
-                const stats = await fs.promises.stat(path.join(thumbnailDir, file));
-                return { name: file, mtime: stats.mtime };
-            }));
-
-        imageFiles.sort((a, b) => b.mtime - a.mtime);
-
-        const recentImages = imageFiles.slice(1, limit + 1); // Exclude the most recent image and limit the results
-
-        // Read each image file and convert to base64
-        const imageData = await Promise.all(recentImages.map(async (file) => {
-            const imageBuffer = await fs.promises.readFile(path.join(thumbnailDir, file.name));
-            const base64Image = imageBuffer.toString('base64');
-            return `data:image/${path.extname(file.name).slice(1)};base64,${base64Image}`;
-        }));
-
-        res.json({ images: imageData });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
 app.get('/notes-content', verifyToken, async (req, res) => {
-
     try {
-
         const notes = await PatientVisits.findOne({ _id: req.query.visitID })
-
         if (notes) {
-
             res.status(200).json({ notes: notes.notes })
-
         }
-
         else {
-
             res.status(404).json({ message: "Visit not found" })
-
         }
-
     }
-
     catch (err) {
-
         console.log(err)
-
         res.status(500).json({ message: "Internal Server Error" })
-
     }
-
 })
 
 app.put('/save-notes', verifyToken, async (req, res) => {
