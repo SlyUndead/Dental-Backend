@@ -637,3 +637,166 @@
 }  
       ----------------------------------------------
     
+      [2025-03-02T07:21:52.044Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589645:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588296:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588795:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588791:14)\n    at async fetchClassCategories (http://localhost:3001/main.6f2b202ca8a9f7e4bbe0.hot-update.js:229:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588795:41)\n    at async fetchClassCategories (http://localhost:3001/main.6f2b202ca8a9f7e4bbe0.hot-update.js:229:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-02T07:21:52.010Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-02T08:23:09.059Z] ERROR:
+      {
+  "message": "Network Error",
+  "stack": "AxiosError: Network Error\n    at XMLHttpRequest.handleError (http://localhost:3001/static/js/bundle.js:588345:14)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588795:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588791:14)\n    at async fetchNotesContent (http://localhost:3001/main.79be3a7a023e957b9e4c.hot-update.js:175:24)\n    at async loadImages (http://localhost:3001/main.79be3a7a023e957b9e4c.hot-update.js:964:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-02T08:23:08.484Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "fetchNotesContent"
+}  
+      ----------------------------------------------
+    
+      [2025-03-02T13:06:45.000Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:589778:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588429:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588928:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588924:14)\n    at async getPatientVisits (http://localhost:3001/static/js/bundle.js:90269:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588928:41)\n    at async getPatientVisits (http://localhost:3001/static/js/bundle.js:90269:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-02T13:06:41.167Z",
+  "url": "http://localhost:3001/patientImagesList",
+  "passedData": null,
+  "responseData": {
+    "message": {
+      "errno": -4077,
+      "code": "ECONNRESET",
+      "syscall": "read"
+    }
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "getPatientVisits"
+}  
+      ----------------------------------------------
+    
+      [2025-03-02T13:06:45.003Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:589778:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588429:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588928:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588924:14)\n    at async getPatientDetails (http://localhost:3001/static/js/bundle.js:90226:26)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588928:41)\n    at async getPatientDetails (http://localhost:3001/static/js/bundle.js:90226:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-02T13:06:41.289Z",
+  "url": "http://localhost:3001/patientImagesList",
+  "passedData": null,
+  "responseData": {
+    "message": {
+      "errno": -4077,
+      "code": "ECONNRESET",
+      "syscall": "read"
+    }
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "getPatientDetails"
+}  
+      ----------------------------------------------
+    
+      [2025-03-03T17:16:32.764Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589782:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588433:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588932:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588928:14)\n    at async fetchClassCategories (http://localhost:3001/main.f218c09d5a96bddebe07.hot-update.js:229:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588932:41)\n    at async fetchClassCategories (http://localhost:3001/main.f218c09d5a96bddebe07.hot-update.js:229:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-03T17:16:32.722Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "Failed to authenticate token."
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-04T19:02:19.047Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589812:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588463:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588962:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588958:14)\n    at async fetchClassCategories (http://localhost:3001/main.7cf11690db6d3eadb512.hot-update.js:229:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588962:41)\n    at async fetchClassCategories (http://localhost:3001/main.7cf11690db6d3eadb512.hot-update.js:229:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-04T19:02:19.013Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Failed to authenticate token."
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-05T03:45:43.744Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589797:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588448:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588947:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588943:14)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588947:41)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-05T03:45:43.737Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-05T13:32:55.106Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589792:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588443:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588942:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588938:14)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588942:41)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-05T13:32:55.102Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-05T16:42:20.502Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:589779:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:588430:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588929:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:588925:14)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:588929:41)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10757:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-05T16:42:20.495Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    

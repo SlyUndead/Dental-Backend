@@ -794,7 +794,9 @@ app.post("/checkAnomalies", verifyToken, async (req, res) => {
 
         // Use Promise.all() to execute queries in parallel
         await Promise.all(labels.map(async (label) => {
-            const checker = await ClassName.findOne({ className: label }); // Use findOne()
+            const checker = await ClassName.findOne({ 
+                className: { $regex: new RegExp("^" + label + "$", "i") } 
+            }); 
             anomalies[label] = checker && checker.category === "Anomaly";
         }));
 
