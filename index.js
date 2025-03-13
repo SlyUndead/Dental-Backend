@@ -189,7 +189,7 @@ const ClassNameSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
+        required: false,
     },
     category: {
         type: String,
@@ -201,7 +201,7 @@ const ClassNameSchema = new mongoose.Schema({
     },
     yt_url1: {
         type: String,
-        required: true,
+        required: false,
     },
     yt_url2: {
         type: String,
@@ -209,7 +209,7 @@ const ClassNameSchema = new mongoose.Schema({
     },
     thumbnail1: {
         type: String,
-        required: true,
+        required: false,
     },
     thumbnail2: {
         type: String,
@@ -233,6 +233,10 @@ const ClassNameSchema = new mongoose.Schema({
     },
     is_deleted: {
         type: Boolean,
+        required: true,
+    },
+    clientId:{
+        type: String,
         required: true,
     }
 }, {
@@ -423,30 +427,13 @@ app.get('/getPatientByID',verifyToken, async (req, res) => {
 
 app.post('/add-className', verifyToken, async (req, res) => {
     try {
-        const thumbnail1Base64 = req.body.thumbnail1Base64;
-        const fileName1 = req.body.fileName1;
         const date = new Date();
-        const thumbnailData1 = thumbnail1Base64.replace(/^data:image\/\w+;base64,/, "");
-        const thumbnailBinaryData1 = Buffer.from(thumbnailData1, 'base64');
-        const thumbnailPath1 = path.join(__dirname, 'AnnotatedFiles', 'Thumbnail', `T${fileName1}`);
-        // Save thumbnail
-        await fs.promises.writeFile(thumbnailPath1, thumbnailBinaryData1);
-        let thumbnailPath2 = null
-        if (req.body.thumbnail2Base64) {
-            const fileName2 = req.body.fileName2
-            const thumbnail2Base64 = req.body.thumbnail2Base64;
-            const thumbnailData2 = thumbnail2Base64.replace(/^data:image\/\w+;base64,/, "");
-            const thumbnailBinaryData2 = Buffer.from(thumbnailData2, 'base64');
-            thumbnailPath2 = path.join(__dirname, 'AnnotatedFiles', 'Thumbnail', `T${fileName2}`);
-            // Save thumbnail
-            await fs.promises.writeFile(thumbnailPath2, thumbnailBinaryData2);
-        }
         const classDetails = new ClassName({
             "className": req.body.className, "description": req.body.description, "created_on": date.toUTCString(), "created_by": req.body.created_by, "category": req.body.category, "color": req.body.color,
-            "is_deleted": false, "yt_url1": req.body.yt_url1, "yt_url2": req.body.yt_url2 || null, "thumbnail1": req.body.thumbnailPath1, "thumbnail2": req.body.thumbnailPath2
+            "is_deleted": false, clientId: req.body.clientId
         })
         await classDetails.save()
-        res.status(200)
+        res.status(200).json({classDetails})
     }
     catch (err) {
         console.log(err);
