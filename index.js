@@ -444,7 +444,11 @@ app.get('/get-classCategories', verifyToken, async (req, res) => {
     try {
         // Fetch all documents and return only the category field
         const classDetails = await ClassName.find(
-            { is_deleted: false },
+            { is_deleted: false,
+            $or: [
+            { clientId: { $exists: false } },
+            { clientId: req.query.clientId }
+        ] },
             { _id: 0, category: 1, className: 1, color: 1 }
         );
         res.status(200).json(classDetails);
