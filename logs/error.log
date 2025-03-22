@@ -4553,3 +4553,488 @@
 }  
       ----------------------------------------------
     
+      [2025-03-14T12:11:20.369Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:591099:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589750:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590249:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590245:14)\n    at async fetchClassCategories (http://localhost:3001/main.cecdc4267ba88a76d828.hot-update.js:242:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590249:41)\n    at async fetchClassCategories (http://localhost:3001/main.cecdc4267ba88a76d828.hot-update.js:242:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-14T12:11:20.344Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T11:31:25.927Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:591174:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589825:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590324:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590320:14)\n    at async fetchClassCategories (http://localhost:3001/main.191a278d2d697cb09477.hot-update.js:242:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590324:41)\n    at async fetchClassCategories (http://localhost:3001/main.191a278d2d697cb09477.hot-update.js:242:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T11:31:25.809Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Failed to authenticate token."
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:21:33.524Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async fetchVisitDateImages (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:215:24)\n    at async loadImages (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:1618:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:21:33.453Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Internal server error"
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "fetchVisitDateImages"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:21:33.532Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async getPatientDetails (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:1674:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async getPatientDetails (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:1674:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:21:33.489Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": {
+      "reason": {
+        "type": "Single",
+        "servers": {
+          "mongo.db.mdbgo.com:8604": {
+            "address": "mongo.db.mdbgo.com:8604",
+            "type": "Unknown",
+            "hosts": [],
+            "passives": [],
+            "arbiters": [],
+            "tags": {},
+            "minWireVersion": 0,
+            "maxWireVersion": 0,
+            "roundTripTime": -1,
+            "minRoundTripTime": 0,
+            "lastUpdateTime": 2158737826,
+            "lastWriteDate": 0,
+            "error": {},
+            "topologyVersion": null,
+            "setName": null,
+            "setVersion": null,
+            "electionId": null,
+            "logicalSessionTimeoutMinutes": null,
+            "primary": null,
+            "me": null,
+            "$clusterTime": null
+          }
+        },
+        "stale": false,
+        "compatible": true,
+        "heartbeatFrequencyMS": 10000,
+        "localThresholdMS": 15,
+        "setName": null,
+        "maxElectionId": null,
+        "maxSetVersion": null,
+        "commonWireVersion": 0,
+        "logicalSessionTimeoutMinutes": null
+      }
+    }
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "getPatientDetails"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:22:03.645Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async fetchVisitDateImages (http://localhost:3001/main.3f3db999d8e86f24da98.hot-update.js:215:24)\n    at async loadImages (http://localhost:3001/main.3f3db999d8e86f24da98.hot-update.js:1652:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:22:03.639Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Internal server error"
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "fetchVisitDateImages"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:22:03.646Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async getPatientDetails (http://localhost:3001/main.3f3db999d8e86f24da98.hot-update.js:1708:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async getPatientDetails (http://localhost:3001/main.3f3db999d8e86f24da98.hot-update.js:1708:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:22:03.642Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": {
+      "reason": {
+        "type": "Single",
+        "servers": {
+          "mongo.db.mdbgo.com:8604": {
+            "address": "mongo.db.mdbgo.com:8604",
+            "type": "Unknown",
+            "hosts": [],
+            "passives": [],
+            "arbiters": [],
+            "tags": {},
+            "minWireVersion": 0,
+            "maxWireVersion": 0,
+            "roundTripTime": -1,
+            "minRoundTripTime": 0,
+            "lastUpdateTime": 2158768125,
+            "lastWriteDate": 0,
+            "error": {},
+            "topologyVersion": null,
+            "setName": null,
+            "setVersion": null,
+            "electionId": null,
+            "logicalSessionTimeoutMinutes": null,
+            "primary": null,
+            "me": null,
+            "$clusterTime": null
+          }
+        },
+        "stale": false,
+        "compatible": true,
+        "heartbeatFrequencyMS": 10000,
+        "localThresholdMS": 15,
+        "setName": null,
+        "maxElectionId": null,
+        "maxSetVersion": null,
+        "commonWireVersion": 0,
+        "logicalSessionTimeoutMinutes": null
+      }
+    }
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "getPatientDetails"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:22:03.653Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async fetchNotesContent (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:188:24)\n    at async loadImages (http://localhost:3001/main.49a1cbad1a7c693cc52d.hot-update.js:1619:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:22:03.645Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Internal Server Error"
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "fetchNotesContent"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:26:10.582Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async fetchVisitDateImages (http://localhost:3001/static/js/bundle.js:10884:24)\n    at async loadImages (http://localhost:3001/static/js/bundle.js:12324:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:26:10.576Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Internal server error"
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "fetchVisitDateImages"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:26:10.615Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591219:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589870:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590365:14)\n    at async getPatientDetails (http://localhost:3001/static/js/bundle.js:12380:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590369:41)\n    at async getPatientDetails (http://localhost:3001/static/js/bundle.js:12380:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:26:10.612Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": {
+      "reason": {
+        "type": "Single",
+        "servers": {
+          "mongo.db.mdbgo.com:8604": {
+            "address": "mongo.db.mdbgo.com:8604",
+            "type": "Unknown",
+            "hosts": [],
+            "passives": [],
+            "arbiters": [],
+            "tags": {},
+            "minWireVersion": 0,
+            "maxWireVersion": 0,
+            "roundTripTime": -1,
+            "minRoundTripTime": 0,
+            "lastUpdateTime": 2158768125,
+            "lastWriteDate": 0,
+            "error": {},
+            "topologyVersion": null,
+            "setName": null,
+            "setVersion": null,
+            "electionId": null,
+            "logicalSessionTimeoutMinutes": null,
+            "primary": null,
+            "me": null,
+            "$clusterTime": null
+          }
+        },
+        "stale": false,
+        "compatible": true,
+        "heartbeatFrequencyMS": 10000,
+        "localThresholdMS": 15,
+        "setName": null,
+        "maxElectionId": null,
+        "maxSetVersion": null,
+        "commonWireVersion": 0,
+        "logicalSessionTimeoutMinutes": null
+      }
+    }
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "getPatientDetails"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T13:46:07.444Z] ERROR:
+      {
+  "message": "Request failed with status code 403",
+  "stack": "AxiosError: Request failed with status code 403\n    at settle (http://localhost:3001/static/js/bundle.js:591144:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589795:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590294:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590290:14)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10911:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590294:41)\n    at async fetchClassCategories (http://localhost:3001/static/js/bundle.js:10911:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T13:46:07.439Z",
+  "url": "http://localhost:3001/login",
+  "passedData": null,
+  "responseData": {
+    "message": "No token provided."
+  },
+  "statusText": "Forbidden",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T16:24:18.706Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:591256:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589907:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590406:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590402:14)\n    at async fetchClassCategories (http://localhost:3001/main.fb20c546f893090030e2.hot-update.js:242:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590406:41)\n    at async fetchClassCategories (http://localhost:3001/main.fb20c546f893090030e2.hot-update.js:242:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T16:24:18.675Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Token expired due to inactivity.",
+    "error": "INACTIVITY_TIMEOUT"
+  },
+  "statusText": "Unauthorized",
+  "functionName": "fetchClassCategories"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T19:31:33.103Z] ERROR:
+      {
+  "message": "Network Error",
+  "stack": "AxiosError: Network Error\n    at XMLHttpRequest.handleError (http://localhost:3001/static/js/bundle.js:589989:14)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590439:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590435:14)\n    at async getCoordinatesFromAPI (http://localhost:3001/static/js/bundle.js:7402:18)\n    at async saveImageToFolder (http://localhost:3001/static/js/bundle.js:7541:25)\n    at async Promise.all (index 0)\n    at async handleSubmit (http://localhost:3001/static/js/bundle.js:90378:21)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T19:31:32.265Z",
+  "url": "http://localhost:3001/newPatientVisit",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getCoordinatesFromAPI"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T19:31:54.466Z] ERROR:
+      {
+  "message": "Network Error",
+  "stack": "AxiosError: Network Error\n    at XMLHttpRequest.handleError (http://localhost:3001/static/js/bundle.js:589989:14)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590439:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590435:14)\n    at async getCoordinatesFromAPI (http://localhost:3001/static/js/bundle.js:7402:18)\n    at async saveImageToFolder (http://localhost:3001/static/js/bundle.js:7541:25)\n    at async Promise.all (index 0)\n    at async handleSubmit (http://localhost:3001/static/js/bundle.js:90378:21)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T19:31:53.435Z",
+  "url": "http://localhost:3001/newPatientVisit",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getCoordinatesFromAPI"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T19:32:12.556Z] ERROR:
+      {
+  "message": "Network Error",
+  "stack": "AxiosError: Network Error\n    at XMLHttpRequest.handleError (http://localhost:3001/static/js/bundle.js:589989:14)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590439:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590435:14)\n    at async getCoordinatesFromAPI (http://localhost:3001/static/js/bundle.js:7402:18)\n    at async saveImageToFolder (http://localhost:3001/static/js/bundle.js:7541:25)\n    at async Promise.all (index 0)\n    at async handleSubmit (http://localhost:3001/static/js/bundle.js:90378:21)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T19:32:11.516Z",
+  "url": "http://localhost:3001/newPatientVisit",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getCoordinatesFromAPI"
+}  
+      ----------------------------------------------
+    
+      [2025-03-17T19:33:15.798Z] ERROR:
+      {
+  "message": "Request failed with status code 500",
+  "stack": "AxiosError: Request failed with status code 500\n    at settle (http://localhost:3001/static/js/bundle.js:591289:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589940:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590439:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590435:14)\n    at async fetchVisitDateImages (http://localhost:3001/static/js/bundle.js:10884:24)\n    at async loadImages (http://localhost:3001/static/js/bundle.js:12394:26)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-17T19:33:15.769Z",
+  "url": "http://localhost:3001/annotationPage",
+  "passedData": null,
+  "responseData": {
+    "message": "Internal server error"
+  },
+  "statusText": "Internal Server Error",
+  "functionName": "fetchVisitDateImages"
+}  
+      ----------------------------------------------
+    
+      [2025-03-18T17:01:33.650Z] ERROR:
+      {
+  "message": "Request failed with status code 401",
+  "stack": "AxiosError: Request failed with status code 401\n    at settle (http://localhost:3001/static/js/bundle.js:591256:12)\n    at XMLHttpRequest.onloadend (http://localhost:3001/static/js/bundle.js:589907:66)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590406:41)\n    at async Axios.request (http://localhost:3001/static/js/bundle.js:590402:14)\n    at async handleSubmit (http://localhost:3001/static/js/bundle.js:18575:24)\n    at Axios.request (http://localhost:3001/static/js/bundle.js:590406:41)\n    at async handleSubmit (http://localhost:3001/static/js/bundle.js:18575:24)",
+  "name": "AxiosError",
+  "details": null,
+  "timestamp": "2025-03-18T17:01:33.642Z",
+  "url": "http://localhost:3001/login",
+  "passedData": "{\"username\":\"admin@agp.com\",\"password\":\"Agp@123\\\\\"}",
+  "responseData": "Invalid credentials",
+  "statusText": "Unauthorized",
+  "functionName": "handleSubmit"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:04:32.826Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'map')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'map')\n    at convertCdtCode (http://localhost:3001/static/js/bundle.js:100104:20)\n    at fetchData (http://localhost:3001/static/js/bundle.js:100320:32)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:04:32.769Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:04:45.518Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'map')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'map')\n    at convertCdtCode (http://localhost:3001/static/js/bundle.js:100104:20)\n    at fetchData (http://localhost:3001/static/js/bundle.js:100320:32)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:04:45.508Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:05:25.940Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'map')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'map')\n    at convertCdtCode (http://localhost:3001/static/js/bundle.js:100104:20)\n    at fetchData (http://localhost:3001/static/js/bundle.js:100320:32)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:05:25.932Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:08:36.394Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'map')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'map')\n    at convertCdtCode (http://localhost:3001/main.ddd32c08d41809a0300a.hot-update.js:205:20)\n    at fetchData (http://localhost:3001/main.ddd32c08d41809a0300a.hot-update.js:421:32)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:08:36.387Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:09:00.894Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'user1')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'user1')\n    at fetchData (http://localhost:3001/main.ddd32c08d41809a0300a.hot-update.js:429:42)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:09:00.888Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:09:35.451Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'user1')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'user1')\n    at fetchData (http://localhost:3001/main.b848746fc42d81e4ab7e.hot-update.js:430:42)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:09:35.447Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    
+      [2025-03-20T18:09:38.627Z] ERROR:
+      {
+  "message": "Cannot read properties of undefined (reading 'user1')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'user1')\n    at fetchData (http://localhost:3001/main.b2d7de5caac3fade71b3.hot-update.js:431:36)",
+  "name": "TypeError",
+  "details": null,
+  "timestamp": "2025-03-20T18:09:38.623Z",
+  "url": "http://localhost:3001/treatmentPlan",
+  "passedData": null,
+  "responseData": null,
+  "statusText": null,
+  "functionName": "getPatientList"
+}  
+      ----------------------------------------------
+    

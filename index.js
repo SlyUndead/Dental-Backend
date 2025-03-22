@@ -83,6 +83,19 @@ const verifyToken = (req, res, next) => {
     });
 };
 
+const TreatmentCodesSchema = new mongoose.Schema({
+    anomaly:{
+        type: String,
+        required: true,
+    },
+    treatment_codes:{
+        type: Array,
+        required:true,
+    }
+},{
+    collection: "TreatmentCodes"
+})
+const TreatmentCodes = new mongoose.model('treatmentCodes', TreatmentCodesSchema)
 
 const PracticeListSchema = new mongoose.Schema({
     name: {
@@ -359,6 +372,29 @@ const TreatmentPlanSchema = new mongoose.Schema({
   });
   
 const TreatmentPlan = mongoose.model('TreatmentPlan', TreatmentPlanSchema);
+app.post('/add-treatment-codes',verifyToken, async (req, res) => {
+    try {
+        // console.log(req.query.clientId);
+        const user1 = new TreatmentCodes({anomaly:req.body.anomaly, treatment_codes:req.body.treatmentCodes})
+        await user1.save()
+        res.status(200).json({ user1 })
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err })
+    }
+})
+app.get('/get-treatment-codes',verifyToken, async (req, res) => {
+    try {
+        // console.log(req.query.clientId);
+        const user1 =await TreatmentCodes.find()
+        res.status(200).json( {user1} )
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err })
+    }
+})
 app.post('/add-practice',verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
