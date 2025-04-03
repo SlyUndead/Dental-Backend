@@ -251,6 +251,10 @@ const ClassNameSchema = new mongoose.Schema({
     clientId:{
         type: String,
         required: true,
+    },
+    confidence:{
+        type:Number,
+        required: true,
     }
 }, {
     collection: 'ClassNames'
@@ -460,13 +464,25 @@ app.get('/getPatientByID',verifyToken, async (req, res) => {
         res.status(500).json({ message: err })
     }
 })
-
+app.post('/edit-className', verifyToken, async (req, res) => {
+    try {
+        await ClassName.findOneAndUpdate({
+            _id:req.query.id},{
+            confidence: req.query.confidence
+        })
+        res.status(200).json({message:"Saved successfully"})
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ err });
+    }
+})
 app.post('/add-className', verifyToken, async (req, res) => {
     try {
         const date = new Date();
         const classDetails = new ClassName({
             "className": req.body.className, "description": req.body.description, "created_on": date.toUTCString(), "created_by": req.body.created_by, "category": req.body.category, "color": req.body.color,
-            "is_deleted": false, clientId: req.body.clientId
+            "is_deleted": false, clientId: req.body.clientId, confidence: 0.00
         })
         await classDetails.save()
         res.status(200).json({classDetails})
@@ -485,7 +501,7 @@ app.get('/get-classCategories', verifyToken, async (req, res) => {
             { clientId: { $exists: false } },
             { clientId: req.query.clientId }
         ] },
-            { _id: 0, category: 1, className: 1, color: 1 }
+            { _id: 1, category: 1, className: 1, color: 1, confidence: 1 }
         );
         res.status(200).json(classDetails);
     }
