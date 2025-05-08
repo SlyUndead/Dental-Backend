@@ -1071,6 +1071,27 @@ app.get('/visitid-images', verifyToken, async (req, res) => {
     }
 });
 
+app.get('/visitid-annotations', verifyToken, async (req, res) => {
+    try {
+        const images = await PatientImages.find({ visitId: req.query.visitID,is_deleted:false });
+        // Map through the images and prepare the response for each
+        const imageData = await Promise.all(images.map(async (image) => {
+            const annotationFilePath = image.image_url.split('.').slice(0, -1).join('.') + '.json';
+            const annotationData = await fs.promises.readFile(annotationFilePath, 'utf8');
+
+            return {
+                annotations: JSON.parse(annotationData),
+                name: image.image_url
+            };
+        }));
+        // Return all images and annotations as an array
+        res.json({ images: imageData });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 //User module
 app.post('/user-register', async (req, res) => {
     try {
