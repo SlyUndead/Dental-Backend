@@ -63,18 +63,18 @@ const verifyToken = (req, res, next) => {
         }
         const inactivityPeriod = Date.now() - decoded.lastActivity;
         if (inactivityPeriod > 7200000) {
-            return res.status(401).json({ 
+            return res.status(401).json({
                 message: 'Token expired due to inactivity.',
                 error: 'INACTIVITY_TIMEOUT'
             });
         }
 
         // Update lastActivity in token
-        const newToken = jwt.sign({ 
+        const newToken = jwt.sign({
             id: decoded.id,
             lastActivity: Date.now()
-        }, jwtSecretKey, { 
-            expiresIn: '24h' 
+        }, jwtSecretKey, {
+            expiresIn: '24h'
         });
         // Send new token in response header
         res.setHeader('New-Token', newToken);
@@ -253,8 +253,29 @@ const ClassNameSchema = new mongoose.Schema({
         required: true,
     },
     confidence:{
-        type:Number,
+        type: Number,
         required: true,
+    },
+    // Group-specific confidence levels
+    pano_confidence: {
+        type: Number,
+        required: false
+    },
+    bitewing_confidence: {
+        type: Number,
+        required: false
+    },
+    pariapical_confidence: {
+        type: Number,
+        required: false
+    },
+    ceph_confidence: {
+        type: Number,
+        required: false
+    },
+    intraoral_confidence: {
+        type: Number,
+        required: false
     }
 }, {
     collection: 'ClassNames'
@@ -374,7 +395,7 @@ const TreatmentPlanSchema = new mongoose.Schema({
   },{
     collection:"TreatmentPlan"
   });
-  
+
 const TreatmentPlan = mongoose.model('TreatmentPlan', TreatmentPlanSchema);
 app.post('/add-treatment-codes',verifyToken, async (req, res) => {
     try {
@@ -466,11 +487,21 @@ app.get('/getPatientByID',verifyToken, async (req, res) => {
 })
 app.post('/edit-className', verifyToken, async (req, res) => {
     try {
-        await ClassName.findOneAndUpdate({
-            _id:req.query.id},{
-            confidence: req.query.confidence
-        })
-        res.status(200).json({message:"Saved successfully"})
+        const updateFields = {};
+
+        // Only update group-specific confidence level
+        if (req.query.group) {
+            const fieldName = `${req.query.group}_confidence`;
+            updateFields[fieldName] = req.query.confidence;
+
+            await ClassName.findOneAndUpdate({
+                _id: req.query.id
+            }, updateFields);
+
+            res.status(200).json({message:"Saved successfully"})
+        } else {
+            res.status(400).json({message:"Group parameter is required"})
+        }
     }
     catch (err) {
         console.log(err);
@@ -480,9 +511,22 @@ app.post('/edit-className', verifyToken, async (req, res) => {
 app.post('/add-className', verifyToken, async (req, res) => {
     try {
         const date = new Date();
+        const defaultConfidence = 0.00;
         const classDetails = new ClassName({
-            "className": req.body.className, "description": req.body.description, "created_on": date.toUTCString(), "created_by": req.body.created_by, "category": req.body.category, "color": req.body.color,
-            "is_deleted": false, clientId: req.body.clientId, confidence: 0.00
+            "className": req.body.className,
+            "description": req.body.description,
+            "created_on": date.toUTCString(),
+            "created_by": req.body.created_by,
+            "category": req.body.category,
+            "color": req.body.color,
+            "is_deleted": false,
+            clientId: req.body.clientId,
+            confidence: defaultConfidence, // Keep for backward compatibility
+            pano_confidence: defaultConfidence,
+            bitewing_confidence: defaultConfidence,
+            pariapical_confidence: defaultConfidence,
+            ceph_confidence: defaultConfidence,
+            intraoral_confidence: defaultConfidence
         })
         await classDetails.save()
         res.status(200).json({classDetails})
@@ -501,7 +545,18 @@ app.get('/get-classCategories', verifyToken, async (req, res) => {
             { clientId: { $exists: false } },
             { clientId: req.query.clientId }
         ] },
-            { _id: 1, category: 1, className: 1, color: 1, confidence: 1 }
+            {
+                _id: 1,
+                category: 1,
+                className: 1,
+                color: 1,
+                confidence: 1,
+                pano_confidence: 1,
+                bitewing_confidence: 1,
+                periapical_confidence: 1,
+                ceph_confidence: 1,
+                intraoral_confidence: 1
+            }
         );
         res.status(200).json(classDetails);
     }
@@ -705,14 +760,14 @@ app.post('/edit-patient', verifyToken, async (req, res) => {
 app.post('/save-treatment-plan', verifyToken, async (req, res) => {
     try {
       const { patientId, treatments } = req.body;
-      
+
       if (!patientId || !treatments) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Missing required fields' 
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields'
         });
       }
-  
+
       // Check if a treatment plan already exists for this patient
       let treatmentPlan = await TreatmentPlan.findOne({ patientId });
       const date=new Date()
@@ -729,9 +784,9 @@ app.post('/save-treatment-plan', verifyToken, async (req, res) => {
           created_on: date.toUTCString()
         });
       }
-  
+
       await treatmentPlan.save();
-  
+
       res.json({
         success: true,
         message: 'Treatment plan saved successfully',
@@ -746,21 +801,21 @@ app.post('/save-treatment-plan', verifyToken, async (req, res) => {
       });
     }
   });
-  
+
   // Route to get a treatment plan for a patient
   app.get('/get-treatment-plan', verifyToken, async (req, res) => {
     try {
       const patientId = req.query.patientId;
-      
+
       if (!patientId) {
         return res.status(400).json({
           success: false,
           message: 'Patient ID is required'
         });
       }
-  
+
       const treatmentPlan = await TreatmentPlan.findOne({ patientId });
-  
+
       if (!treatmentPlan) {
         return res.json({
           success: true,
@@ -768,7 +823,7 @@ app.post('/save-treatment-plan', verifyToken, async (req, res) => {
           treatmentPlan: null
         });
       }
-  
+
       res.json({
         success: true,
         treatmentPlan
@@ -785,18 +840,18 @@ app.post('/save-treatment-plan', verifyToken, async (req, res) => {
 app.post('/chat-with-rag', verifyToken, async (req, res) => {
     try {
         const { query, promptTemplate } = req.body;
-        
+
         // Forward request to Flask backend
         const flaskResponse = await axios.post(`http://5.161.242.73/api/rag-chat`, {
           query,
           promptTemplate
         });
-        
+
         // Return response from Flask
         res.json(flaskResponse.data);
       } catch (error) {
         console.error('Error proxying request to Flask server:', error);
-        
+
         // Provide appropriate error response
         if (error.response) {
           // Flask server returned an error
@@ -837,9 +892,9 @@ app.post("/checkAnomalies", verifyToken, async (req, res) => {
 
         // Use Promise.all() to execute queries in parallel
         await Promise.all(labels.map(async (label) => {
-            const checker = await ClassName.findOne({ 
-                className: { $regex: new RegExp("^" + label + "$", "i") } 
-            }); 
+            const checker = await ClassName.findOne({
+                className: { $regex: new RegExp("^" + label + "$", "i") }
+            });
             anomalies[label] = checker && checker.category === "Anomaly";
         }));
 
@@ -1178,7 +1233,7 @@ app.post('/log-error', (req, res) => {
     const timestamp = new Date().toISOString();
     const logMessage = `
       [${timestamp}] ERROR:
-      ${serializeError(error)}  
+      ${serializeError(error)}
       ----------------------------------------------
     `;
     // Append the error message to the log file
