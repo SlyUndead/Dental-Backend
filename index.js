@@ -10,6 +10,36 @@ const User = require('./models/User');
 const FormData = require('form-data');
 const jwtSecretKey = "AgpDental"
 const axios = require('axios');
+const polyclip = require('polygon-clipping')
+const { v4: uuidv4 } = require('uuid');
+const jobResults = new Map();
+
+
+const calculateOverlap = (segA, segB) => {
+    // Convert segmentation arrays to proper format
+    const polygonA = segA.map(point => [point.x, point.y]);
+    const polygonB = segB.map(point => [point.x, point.y]);
+
+    // Calculate intersection area
+    const intersection = polyclip.intersection([polygonA], [polygonB]);
+
+    if (intersection.length === 0) return 0; // No overlap
+
+    // Calculate the overlapping area using Shoelace formula
+    return intersection.reduce((area, poly) => area + polygonArea(poly[0]), 0);
+}
+
+// Shoelace formula to calculate the area of a polygon
+const polygonArea = (points) => {
+    let area = 0;
+    const n = points.length;
+    for (let i = 0; i < n; i++) {
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[(i + 1) % n]; // Wrap around for last point
+        area += x1 * y2 - x2 * y1;
+    }
+    return Math.abs(area / 2);
+}
 // const { createCanvas, loadImage } = require('canvas');
 // const sharp = require('sharp')
 const app = express();
@@ -33,6 +63,8 @@ app.use(function (req, res, next) {
     if (req.method === "OPTIONS") {
         return res.status(200).end();
     }
+    req.setTimeout(300000); // 300,000 ms = 5 minutes
+    res.setTimeout(300000);
     next();
 });
 
@@ -84,15 +116,15 @@ const verifyToken = (req, res, next) => {
 };
 
 const TreatmentCodesSchema = new mongoose.Schema({
-    anomaly:{
+    anomaly: {
         type: String,
         required: true,
     },
-    treatment_codes:{
+    treatment_codes: {
         type: Array,
-        required:true,
+        required: true,
     }
-},{
+}, {
     collection: "TreatmentCodes"
 })
 const TreatmentCodes = new mongoose.model('treatmentCodes', TreatmentCodesSchema)
@@ -110,9 +142,9 @@ const PracticeListSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    client_id:{
-        type:String,
-        required:true,
+    client_id: {
+        type: String,
+        required: true,
     }
 }, {
     collection: "PracticeList"
@@ -187,9 +219,9 @@ const PatientSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    patient_active:{
-        type:Boolean,
-        required:true,
+    patient_active: {
+        type: Boolean,
+        required: true,
     }
 }, {
     collection: "Patient"
@@ -248,11 +280,11 @@ const ClassNameSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
     },
-    clientId:{
+    clientId: {
         type: String,
         required: true,
     },
-    confidence:{
+    confidence: {
         type: Number,
         required: true,
     },
@@ -346,23 +378,23 @@ const PatientImagesSchema = new mongoose.Schema({
 const PatientImages = new mongoose.model('patientImages', PatientImagesSchema)
 
 const CDTCodesSchema = new mongoose.Schema({
-    "Procedure Code":{
+    "Procedure Code": {
         type: String,
         required: true,
     },
-    "Description of Service":{
+    "Description of Service": {
         type: String,
         required: true,
     },
-    "Average Fee":{
+    "Average Fee": {
         type: Number,
         required: true,
     },
-    "Patient Discount":{
+    "Patient Discount": {
         type: Number,
         required: true,
     },
-    "Unit":{
+    "Unit": {
         type: String,
         required: true,
     }
@@ -373,34 +405,58 @@ const CDTCodes = new mongoose.model('CDTCodes', CDTCodesSchema)
 
 const TreatmentPlanSchema = new mongoose.Schema({
     patientId: {
-      type: String,
-      required: true,
+        type: String,
+        required: true,
     },
     treatments: {
-      type: Array,
-      required: true,
+        type: Array,
+        required: true,
     },
     created_by: {
-      type: String,
-      required: true
+        type: String,
+        required: true
     },
     created_on: {
-      type: String,
-      required: true
+        type: String,
+        required: true
     },
     updated_on: {
-      type: Date,
-      required: false
+        type: Date,
+        required: false
     }
-  },{
-    collection:"TreatmentPlan"
-  });
+}, {
+    collection: "TreatmentPlan"
+});
 
 const TreatmentPlan = mongoose.model('TreatmentPlan', TreatmentPlanSchema);
-app.post('/add-treatment-codes',verifyToken, async (req, res) => {
+const AnomalyPrerequisitesSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    requisites: {
+        type: mongoose.Schema.Types.Mixed,
+        required: true
+    }
+}, {
+    collection: "AnomalyRequisites"
+});
+
+const AnomalyPrerequisites = mongoose.model('AnomalyPrerequisites', AnomalyPrerequisitesSchema);
+app.get('/get-anomaly-prerequisites', verifyToken, async (req, res) => {
+    try {
+        const user1 = await AnomalyPrerequisites.findOne({ name: req.query.name.toLowerCase() })
+        res.status(200).json({ user1 })
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json({ message: err })
+    }
+})
+app.post('/add-treatment-codes', verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
-        const user1 = new TreatmentCodes({anomaly:req.body.anomaly, treatment_codes:req.body.treatmentCodes})
+        const user1 = new TreatmentCodes({ anomaly: req.body.anomaly, treatment_codes: req.body.treatmentCodes })
         await user1.save()
         res.status(200).json({ user1 })
     }
@@ -409,21 +465,21 @@ app.post('/add-treatment-codes',verifyToken, async (req, res) => {
         res.status(500).json({ message: err })
     }
 })
-app.get('/get-treatment-codes',verifyToken, async (req, res) => {
+app.get('/get-treatment-codes', verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
-        const user1 =await TreatmentCodes.find()
-        res.status(200).json( {user1} )
+        const user1 = await TreatmentCodes.find()
+        res.status(200).json({ user1 })
     }
     catch (err) {
         console.log(err);
         res.status(500).json({ message: err })
     }
 })
-app.post('/add-practice',verifyToken, async (req, res) => {
+app.post('/add-practice', verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
-        const user1 = new PracticeList({name:req.body.name, address:req.body.address, contactNo:req.body.contactNo, client_id:req.body.clientId})
+        const user1 = new PracticeList({ name: req.body.name, address: req.body.address, contactNo: req.body.contactNo, client_id: req.body.clientId })
         await user1.save()
         res.status(200).json({ user1 })
     }
@@ -433,10 +489,10 @@ app.post('/add-practice',verifyToken, async (req, res) => {
     }
 })
 
-app.post('/edit-practice',verifyToken, async (req, res) => {
+app.post('/edit-practice', verifyToken, async (req, res) => {
     try {
-        await PracticeList.findOneAndUpdate({_id:req.body.practiceId},{name:req.body.name, address:req.body.address, contactNo:req.body.contactNo, client_id:req.body.clientId})
-        const user2 = await PracticeList.findOne({_id:req.body.practiceId})
+        await PracticeList.findOneAndUpdate({ _id: req.body.practiceId }, { name: req.body.name, address: req.body.address, contactNo: req.body.contactNo, client_id: req.body.clientId })
+        const user2 = await PracticeList.findOne({ _id: req.body.practiceId })
         res.status(200).json({ user2 })
     }
     catch (err) {
@@ -445,7 +501,7 @@ app.post('/edit-practice',verifyToken, async (req, res) => {
     }
 })
 
-app.get('/getPracticeList',verifyToken, async (req, res) => {
+app.get('/getPracticeList', verifyToken, async (req, res) => {
     try {
         // console.log(req.query.clientId);
         const practiceList = await PracticeList.find({
@@ -457,7 +513,7 @@ app.get('/getPracticeList',verifyToken, async (req, res) => {
         res.status(500).json({ message: err })
     }
 })
-app.get('/getPatient',verifyToken, async (req, res) => {
+app.get('/getPatient', verifyToken, async (req, res) => {
     try {
         const practiceId = req.query.practiceId;
         const patientList = await Patient.find({
@@ -471,7 +527,7 @@ app.get('/getPatient',verifyToken, async (req, res) => {
     }
 })
 
-app.get('/getPatientByID',verifyToken, async (req, res) => {
+app.get('/getPatientByID', verifyToken, async (req, res) => {
     try {
         const patientId = req.query.patientId;
         const patientList = await Patient.findOne({
@@ -498,9 +554,9 @@ app.post('/edit-className', verifyToken, async (req, res) => {
                 _id: req.query.id
             }, updateFields);
 
-            res.status(200).json({message:"Saved successfully"})
+            res.status(200).json({ message: "Saved successfully" })
         } else {
-            res.status(400).json({message:"Group parameter is required"})
+            res.status(400).json({ message: "Group parameter is required" })
         }
     }
     catch (err) {
@@ -529,7 +585,7 @@ app.post('/add-className', verifyToken, async (req, res) => {
             intraoral_confidence: defaultConfidence
         })
         await classDetails.save()
-        res.status(200).json({classDetails})
+        res.status(200).json({ classDetails })
     }
     catch (err) {
         console.log(err);
@@ -540,11 +596,13 @@ app.get('/get-classCategories', verifyToken, async (req, res) => {
     try {
         // Fetch all documents and return only the category field
         const classDetails = await ClassName.find(
-            { is_deleted: false,
-            $or: [
-            { clientId: { $exists: false } },
-            { clientId: req.query.clientId }
-        ] },
+            {
+                is_deleted: false,
+                $or: [
+                    { clientId: { $exists: false } },
+                    { clientId: req.query.clientId }
+                ]
+            },
             {
                 _id: 1,
                 category: 1,
@@ -711,7 +769,7 @@ app.post('/delete-patient', verifyToken, async (req, res) => {
         res.status(500).json({ err })
     }
 })
-app.post('/add-patient',verifyToken, async (req, res) => {
+app.post('/add-patient', verifyToken, async (req, res) => {
     try {
         if (await Patient.findOne({ "email": req.body.email })) {
             res.status(409).json({ message: "Patient already found" })
@@ -722,7 +780,7 @@ app.post('/add-patient',verifyToken, async (req, res) => {
                 "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email, "telephone": req.body.telephone, "gender": req.body.gender,
                 "date_of_birth": req.body.dob, "reference_dob_for_age": req.body.reference_dob_for_age, "guardian_first_name": req.body.guardian_first_name,
                 "guardian_last_name": req.body.guardian_last_name, "guardian_relationship": req.body.guardian_relationship, "address": req.body.address,
-                "is_active": req.body.is_active, "created_on": date.toUTCString(), "created_by": req.body.created_by, "practiceId": req.body.practiceId, "patient_active":req.body.patientActive
+                "is_active": req.body.is_active, "created_on": date.toUTCString(), "created_by": req.body.created_by, "practiceId": req.body.practiceId, "patient_active": req.body.patientActive
             })
             await user.save()
             const user1 = await Patient.findOne({ "email": req.body.email })
@@ -742,10 +800,10 @@ app.post('/edit-patient', verifyToken, async (req, res) => {
                 "first_name": req.body.first_name, "last_name": req.body.last_name, "email": req.body.email,
                 "telephone": req.body.telephone, "gender": req.body.gender, "date_of_birth": req.body.dob, "reference_dob_for_age": req.body.reference_dob_for_age,
                 "guardian_first_name": req.body.guardian_first_name, "guardian_last_name": req.body.guardian_last_name, "guardian_relationship": req.body.guardian_relationship,
-                "address": req.body.address, "modified_on": date.toUTCString(), "modified_by": req.body.created_by, "patient_active":req.body.patientActive
+                "address": req.body.address, "modified_on": date.toUTCString(), "modified_by": req.body.created_by, "patient_active": req.body.patientActive
             }
         });
-        const user1=await Patient.findOne({_id:req.body.patientId})
+        const user1 = await Patient.findOne({ _id: req.body.patientId })
         if (user1) {
             res.status(200).json({ user1 });
         } else {
@@ -759,129 +817,180 @@ app.post('/edit-patient', verifyToken, async (req, res) => {
 })
 app.post('/save-treatment-plan', verifyToken, async (req, res) => {
     try {
-      const { patientId, treatments } = req.body;
+        const { patientId, treatments } = req.body;
 
-      if (!patientId || !treatments) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required fields'
+        if (!patientId || !treatments) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        // Check if a treatment plan already exists for this patient
+        let treatmentPlan = await TreatmentPlan.findOne({ patientId });
+        const date = new Date()
+        if (treatmentPlan) {
+            // Update existing treatment plan
+            treatmentPlan.treatments = treatments;
+            treatmentPlan.updatedAt = Date.now();
+        } else {
+            // Create new treatment plan
+            treatmentPlan = new TreatmentPlan({
+                patientId,
+                treatments,
+                created_by: req.body.created_by, // Assuming your auth middleware sets user
+                created_on: date.toUTCString()
+            });
+        }
+
+        await treatmentPlan.save();
+
+        res.json({
+            success: true,
+            message: 'Treatment plan saved successfully',
+            treatmentPlan
         });
-      }
-
-      // Check if a treatment plan already exists for this patient
-      let treatmentPlan = await TreatmentPlan.findOne({ patientId });
-      const date=new Date()
-      if (treatmentPlan) {
-        // Update existing treatment plan
-        treatmentPlan.treatments = treatments;
-        treatmentPlan.updatedAt = Date.now();
-      } else {
-        // Create new treatment plan
-        treatmentPlan = new TreatmentPlan({
-          patientId,
-          treatments,
-          created_by: req.body.created_by, // Assuming your auth middleware sets user
-          created_on: date.toUTCString()
-        });
-      }
-
-      await treatmentPlan.save();
-
-      res.json({
-        success: true,
-        message: 'Treatment plan saved successfully',
-        treatmentPlan
-      });
     } catch (error) {
-      console.error('Error saving treatment plan:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Server error',
-        error: error.message
-      });
+        console.error('Error saving treatment plan:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
-  });
+});
 
-  // Route to get a treatment plan for a patient
-  app.get('/get-treatment-plan', verifyToken, async (req, res) => {
+// Route to get a treatment plan for a patient
+app.get('/get-treatment-plan', verifyToken, async (req, res) => {
     try {
-      const patientId = req.query.patientId;
+        const patientId = req.query.patientId;
 
-      if (!patientId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Patient ID is required'
+        if (!patientId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Patient ID is required'
+            });
+        }
+
+        const treatmentPlan = await TreatmentPlan.findOne({ patientId });
+
+        if (!treatmentPlan) {
+            return res.json({
+                success: true,
+                message: 'No treatment plan found for this patient',
+                treatmentPlan: null
+            });
+        }
+
+        res.json({
+            success: true,
+            treatmentPlan
         });
-      }
-
-      const treatmentPlan = await TreatmentPlan.findOne({ patientId });
-
-      if (!treatmentPlan) {
-        return res.json({
-          success: true,
-          message: 'No treatment plan found for this patient',
-          treatmentPlan: null
-        });
-      }
-
-      res.json({
-        success: true,
-        treatmentPlan
-      });
     } catch (error) {
-      console.error('Error fetching treatment plan:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Server error',
-        error: error.message
-      });
+        console.error('Error fetching treatment plan:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
-  });
+});
+app.post('/start-chat-job', verifyToken, async (req, res) => {
+    const { query, json } = req.body;
+    const jobId = uuidv4();
+
+    // Mark job as pending
+    jobResults.set(jobId, { status: 'pending', result: null, error: null });
+
+    // Start async task
+    (async () => {
+        try {
+            const flaskResponse = await axios.post(
+                `http://5.161.242.73/api/rag-chat`,
+                { query, json },
+                {
+                    timeout: 600000,
+                    headers: {
+                        'Connection': 'keep-alive',
+                        'Keep-Alive': 'timeout=600'
+                    }
+                }
+            );
+            jobResults.set(jobId, { status: 'completed', result: flaskResponse.data, error: null });
+        } catch (error) {
+            console.error('Async job error:', error.message);
+            jobResults.set(jobId, {
+                status: 'failed',
+                result: null,
+                error: error.response?.data || error.message || 'Unknown error'
+            });
+        }
+    })();
+
+    res.status(202).json({ jobId });
+});
+app.get('/chat-job-status/:jobId', verifyToken, (req, res) => {
+  const jobId = req.params.jobId;
+  const job = jobResults.get(jobId);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+
+  res.status(200).json(job);
+});
 app.post('/chat-with-rag', verifyToken, async (req, res) => {
     try {
-        const { query, promptTemplate } = req.body;
+        const { query, json } = req.body;
 
         // Forward request to Flask backend
         const flaskResponse = await axios.post(`http://5.161.242.73/api/rag-chat`, {
-          query,
-          promptTemplate
-        });
-
+            query,
+            json
+        }, {
+            timeout: 600000,
+            headers: {
+                'Connection': 'keep-alive',
+                'Keep-Alive': 'timeout=600'
+            },
+        }
+        );
+        console.log(flaskResponse.data)
         // Return response from Flask
-        res.json(flaskResponse.data);
-      } catch (error) {
+        res.status(200).json(flaskResponse.data);
+    } catch (error) {
         console.error('Error proxying request to Flask server:', error);
 
         // Provide appropriate error response
         if (error.response) {
-          // Flask server returned an error
-          res.status(error.response.status).json({
-            error: 'Error from RAG service',
-            details: error.response.data
-          });
+            // Flask server returned an error
+            res.status(error.response.status).json({
+                error: 'Error from RAG service',
+                details: error.response.data
+            });
         } else if (error.request) {
-          // No response received from Flask server
-          res.status(503).json({
-            error: 'RAG service unavailable',
-            details: 'Could not connect to the RAG service'
-          });
+            // No response received from Flask server
+            res.status(503).json({
+                error: 'RAG service unavailable',
+                details: 'Could not connect to the RAG service'
+            });
         } else {
-          // Error in setting up the request
-          res.status(500).json({
-            error: 'Internal server error',
-            details: error.message
-          });
+            // Error in setting up the request
+            res.status(500).json({
+                error: 'Internal server error',
+                details: error.message
+            });
         }
-      }
+    }
 });
 
-app.get('/getCDTCodes', verifyToken, async(req,res)=>{
-    try{
+app.get('/getCDTCodes', verifyToken, async (req, res) => {
+    try {
         const cdtCodes = await CDTCodes.find()
-        res.json({cdtCodes: cdtCodes})
+        res.json({ cdtCodes: cdtCodes })
     }
-    catch (err){
-        res.status(500).json({err})
+    catch (err) {
+        res.status(500).json({ err })
     }
 })
 
@@ -905,14 +1014,14 @@ app.post("/checkAnomalies", verifyToken, async (req, res) => {
     }
 });
 
-app.get('/get-annotations-for-treatment-plan', verifyToken, async(req,res)=>{
+app.get('/get-annotations-for-treatment-plan', verifyToken, async (req, res) => {
     try {
         const patientId = req.query.patientId;
         const patientVisits = await PatientVisits.find({
             "patientId": patientId
         }).sort({ date_of_visit: -1 })
         const lastVisit = patientVisits[0]
-        const images = await PatientImages.find({ visitId: lastVisit._id.toString(), is_deleted:false });
+        const images = await PatientImages.find({ visitId: lastVisit._id.toString(), is_deleted: false });
         // Map through the images and prepare the response for each
         const imageData = await Promise.all(images.map(async (image) => {
             const base64Image = await fs.promises.readFile(image.image_url, 'base64');
@@ -972,6 +1081,126 @@ app.put('/upload/image-and-annotations', verifyToken, async (req, res) => {
         res.status(500).send('Error uploading files: ' + err.message);
     }
 });
+
+// Function to add associatedTooth field to each annotation
+function addAssociatedToothToAnnotations(data) {
+    if (!data || !data.annotations.annotations || !Array.isArray(data.annotations.annotations)) {
+        return data;
+    }
+
+    // First, filter out tooth annotations (numeric labels)
+    const toothAnnotations = data.annotations.annotations.filter(anno => {
+        return !isNaN(Number.parseInt(anno.label)) &&
+            Number.parseInt(anno.label) >= 1 &&
+            Number.parseInt(anno.label) <= 32;
+    });
+
+    // If no tooth annotations found, return original data
+    if (toothAnnotations.length === 0) {
+        return data;
+    }
+
+    // Helper function to find tooth range for bone loss
+    const findToothRangeForBoneLoss = (anomaly, toothAnnotations) => {
+        const overlappingTeeth = [];
+
+        toothAnnotations.forEach((toothAnno) => {
+            const toothNumber = Number.parseInt(toothAnno.label);
+            if (
+                !isNaN(toothNumber) &&
+                toothNumber >= 1 &&
+                toothNumber <= 32 &&
+                anomaly.segmentation &&
+                toothAnno.segmentation
+            ) {
+                try {
+                    const overlap = calculateOverlap(anomaly.segmentation, toothAnno.segmentation);
+                    const annoArea = polygonArea(anomaly.segmentation.map((point) => [point.x, point.y]));
+                    const overlapPercentage = annoArea > 0 ? overlap / annoArea : 0;
+
+                    // For bone loss, include any tooth with even minimal overlap (2% threshold)
+                    if (overlapPercentage > 0.02) {
+                        overlappingTeeth.push(toothNumber);
+                    }
+                } catch (error) {
+                    console.error("Error calculating overlap:", error);
+                }
+            }
+        });
+
+        // Sort teeth by number to create a range
+        overlappingTeeth.sort((a, b) => a - b);
+
+        if (overlappingTeeth.length > 0) {
+            // Format the range as "X-Y" if it's a range, or just "X" if it's a single tooth
+            return overlappingTeeth.length > 1
+                ? `${overlappingTeeth[0]}-${overlappingTeeth[overlappingTeeth.length - 1]}`
+                : `${overlappingTeeth[0]}`;
+        }
+
+        return null;
+    };
+
+    // Process each annotation to find associated tooth
+    const processedAnnotations = data.annotations.annotations.map(anno => {
+        // Skip tooth annotations (they don't need an associatedTooth field)
+        if (!isNaN(Number.parseInt(anno.label))) {
+            return anno;
+        }
+
+        let associatedTooth = null;
+
+        // Special handling for bone loss annotations - use the tooth range
+        if (anno.label && anno.label.toLowerCase().includes("bone loss")) {
+            associatedTooth = findToothRangeForBoneLoss(anno, toothAnnotations);
+        }
+
+        // If not bone loss or no range found, use standard single tooth method
+        if (!associatedTooth) {
+            // Check overlap with each tooth for single tooth association
+            let maxOverlap = 0;
+
+            for (const toothAnno of toothAnnotations) {
+                // Skip if either annotation doesn't have segmentation
+                if (!anno.segmentation || !toothAnno.segmentation) {
+                    continue;
+                }
+
+                try {
+                    // Calculate overlap
+                    const overlap = calculateOverlap(anno.segmentation, toothAnno.segmentation);
+                    const annoArea = polygonArea(anno.segmentation.map(point => [point.x, point.y]));
+                    const overlapPercentage = annoArea > 0 ? overlap / annoArea : 0;
+
+                    // Only consider if overlap is at least 80%
+                    if (overlapPercentage >= 0.8 && overlap > maxOverlap) {
+                        maxOverlap = overlap;
+                        associatedTooth = Number.parseInt(toothAnno.label);
+                    }
+                } catch (error) {
+                    console.error("Error calculating overlap:", error);
+                }
+            }
+        }
+
+        // Add associatedTooth field to the annotation
+        return {
+            ...anno,
+            associatedTooth: associatedTooth
+        };
+    });
+
+    // Return the updated data
+    return {
+        ...data,
+        annotations: {
+            ...data.annotations,
+            annotations: processedAnnotations
+        }
+    };
+}
+
+// Modified API endpoint
 app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req, res) => {
     try {
         const { base64Image, thumbnailBase64, visitId, fileName, patientID, imageNumber, annotationFileName } = req.body
@@ -1001,11 +1230,16 @@ app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req,
             }
         );
 
-        // console.log(response.data)
-        const scaledResponse = {
+        // Process the response to add associatedTooth field
+        const processedData = addAssociatedToothToAnnotations({
             annotations: response.data,
-            status: response.data.status,
+            status: response.data.status
+        });
+        const scaledResponse = {
+            annotations: processedData.annotations,
+            status: processedData.status,
         };
+        console.log(scaledResponse, processedData)
         const binaryData = Buffer.from(base64Data, 'base64');
         // Extract thumbnail base64 data
         const thumbnailData = thumbnailBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -1017,19 +1251,24 @@ app.post('/upload/coordinates', verifyToken, upload.single('image'), async (req,
         await fs.promises.writeFile(imagePath, binaryData);
         // Save thumbnail
         await fs.promises.writeFile(thumbnailPath, thumbnailBinaryData);
-        // Save annotations
+        // Save annotations (now with associatedTooth field)
         await fs.promises.writeFile(annotationPath, JSON.stringify(scaledResponse));
         // console.log(`Image, thumbnail, and annotations saved for Patient ID: ${patientID}, Image Number: ${imageNumber}`);
         //Save to Database
         const date = new Date();
         const images = new PatientImages({
-            "visitId": visitId, "patientId": patientID, "image_url": path.join('AnnotatedFiles', fileName),
+            "visitId": visitId,
+            "patientId": patientID,
+            "image_url": path.join('AnnotatedFiles', fileName),
             "json_url": path.join('AnnotatedFiles', annotationFileName),
-            "thumbnail_url": path.join('AnnotatedFiles', 'Thumbnail', `T${fileName}`), "created_on": date.toUTCString(),
+            "thumbnail_url": path.join('AnnotatedFiles', 'Thumbnail', `T${fileName}`),
+            "created_on": date.toUTCString(),
             "is_deleted": false
         })
         await images.save()
-        res.status(200).json(response.data);
+
+        // Return the processed data with associatedTooth fields
+        res.status(200).json(processedData.annotations);
     }
     catch (error) {
         console.error('Error forwarding image:', error);
@@ -1105,7 +1344,7 @@ app.put('/save-annotations', verifyToken, async (req, res) => {
 
 app.get('/visitid-images', verifyToken, async (req, res) => {
     try {
-        const images = await PatientImages.find({ visitId: req.query.visitID,is_deleted:false });
+        const images = await PatientImages.find({ visitId: req.query.visitID, is_deleted: false });
         // Map through the images and prepare the response for each
         const imageData = await Promise.all(images.map(async (image) => {
             const base64Image = await fs.promises.readFile(image.image_url, 'base64');
@@ -1128,7 +1367,7 @@ app.get('/visitid-images', verifyToken, async (req, res) => {
 
 app.get('/visitid-annotations', verifyToken, async (req, res) => {
     try {
-        const images = await PatientImages.find({ visitId: req.query.visitID,is_deleted:false });
+        const images = await PatientImages.find({ visitId: req.query.visitID, is_deleted: false });
         // Map through the images and prepare the response for each
         const imageData = await Promise.all(images.map(async (image) => {
             const annotationFilePath = image.image_url.split('.').slice(0, -1).join('.') + '.json';
@@ -1183,7 +1422,7 @@ app.post('/login', async (req, res) => {
         // Generate JWT
         const token = jwt.sign({ id: user._id, lastActivity: Date.now() }, jwtSecretKey, { expiresIn: '12h' });
         const user1 = await User.findOne({ "email": username });
-        res.status(200).json({ "token": token, "clientId": user1.client_id, "firstName": user1.first_name, "lastName":user1.last_name });
+        res.status(200).json({ "token": token, "clientId": user1.client_id, "firstName": user1.first_name, "lastName": user1.last_name });
     } catch (error) {
         res.status(500).send('Server error');
     }
@@ -1250,4 +1489,5 @@ app.use('/AnnotatedFiles', express.static(path.join(__dirname, 'AnnotatedFiles')
 // Serve static files from the 'public/images' directory
 //app.use('/images', express.static(path.join(__dirname, 'AnnotatedFiles/Thumbnail')));
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+const server = app.listen(3000, () => console.log('Server running on port 3000'));
+server.setTimeout(600000)
