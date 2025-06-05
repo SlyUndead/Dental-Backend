@@ -443,6 +443,168 @@ const AnomalyPrerequisitesSchema = new mongoose.Schema({
 });
 
 const AnomalyPrerequisites = mongoose.model('AnomalyPrerequisites', AnomalyPrerequisitesSchema);
+// Add this schema to your index.js file after other schemas
+const ChatHistorySchema = new mongoose.Schema({
+    patientId: {
+        type: String,
+        required: true,
+    },
+    messages: [{
+        text: {
+            type: String,
+            required: true
+        },
+        sender: {
+            type: String,
+            required: true,
+            enum: ['user', 'bot']
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        isError: {
+            type: Boolean,
+            default: false
+        }
+    }],
+    created_by: {
+        type: String,
+        required: true,
+    },
+    created_on: {
+        type: Date,
+        default: Date.now
+    },
+    updated_on: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    collection: "ChatHistory"
+});
+
+const ChatHistory = mongoose.model('ChatHistory', ChatHistorySchema);
+
+// Add these API endpoints to your index.js file
+
+// Save chat message
+app.post('/save-chat-message', verifyToken, async (req, res) => {
+    try {
+        const { patientId, message } = req.body;
+
+        if (!patientId || !message) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields'
+            });
+        }
+
+        // Find existing chat history or create new one
+        let chatHistory = await ChatHistory.findOne({ patientId });
+
+        if (chatHistory) {
+            // Add message to existing history
+            chatHistory.messages.push({
+                text: message.text,
+                sender: message.sender,
+                timestamp: new Date(),
+                isError: message.isError || false
+            });
+            chatHistory.updated_on = new Date();
+        } else {
+            // Create new chat history
+            chatHistory = new ChatHistory({
+                patientId,
+                messages: [{
+                    text: message.text,
+                    sender: message.sender,
+                    timestamp: new Date(),
+                    isError: message.isError || false
+                }],
+                created_by: req.user.id, // From JWT token
+                created_on: new Date(),
+                updated_on: new Date()
+            });
+        }
+
+        await chatHistory.save();
+
+        res.json({
+            success: true,
+            message: 'Chat message saved successfully'
+        });
+    } catch (error) {
+        console.error('Error saving chat message:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+});
+
+// Get chat history for a patient
+app.get('/get-chat-history', verifyToken, async (req, res) => {
+    try {
+        const patientId = req.query.patientId;
+
+        if (!patientId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Patient ID is required'
+            });
+        }
+
+        const chatHistory = await ChatHistory.findOne({ patientId });
+
+        if (!chatHistory) {
+            return res.json({
+                success: true,
+                messages: [],
+                message: 'No chat history found for this patient'
+            });
+        }
+
+        res.json({
+            success: true,
+            messages: chatHistory.messages
+        });
+    } catch (error) {
+        console.error('Error fetching chat history:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+});
+
+// Clear chat history for a patient (optional)
+app.post('/clear-chat-history', verifyToken, async (req, res) => {
+    try {
+        const { patientId } = req.body;
+
+        if (!patientId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Patient ID is required'
+            });
+        }
+        await ChatHistory.findOneAndDelete({ patientId });
+        res.json({
+            success: true,
+            message: 'Chat history cleared successfully'
+        });
+    } catch (error) {
+        console.error('Error clearing chat history:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+});
 app.get('/get-anomaly-prerequisites', verifyToken, async (req, res) => {
     try {
         const user1 = await AnomalyPrerequisites.findOne({ name: req.query.name.toLowerCase() })
